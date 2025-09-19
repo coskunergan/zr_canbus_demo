@@ -4,8 +4,8 @@
 	gpios {		
 		compatible = "gpio-leds";	
 		my_led: my_led {			
-			gpios = <&gpioe 0 GPIO_ACTIVE_LOW>;	
-			label = "buzzer lcd_bl";
+			gpios = <&gpiog 10 GPIO_ACTIVE_LOW>;	
+			label = "RED LED LED2";
 		};
 		button: button {
 			gpios = <&gpioc 13 (GPIO_PULL_DOWN | GPIO_ACTIVE_LOW)>;

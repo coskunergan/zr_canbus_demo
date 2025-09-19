@@ -6,10 +6,8 @@
    },
 "bsp": {
    //"board": "stm32f4_disco",
-   "board": "stm32l152c_disco",
+   "board": "nucleo_n657x0_q",
    //"board": "qmu_cortex_m3",
-   //"board": "nucleo_f207zg",   
-   //"board": "nucleo_f072rb",   
  },
  "app": {
    "name": "${config:workspaceFolder.AppUnderDev}",

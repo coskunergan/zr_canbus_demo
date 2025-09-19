@@ -24,20 +24,21 @@ use zephyr::{device::gpio::GpioPin, sync::Mutex};
 
 use core::{sync::atomic::AtomicBool, sync::atomic::AtomicI32, sync::atomic::Ordering};
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
-use embassy_sync::signal::Signal;
 
 use pin::{GlobalPin, Pin};
 
-mod button;
 mod pin;
+mod button;
 mod usage;
 
 static EXECUTOR_MAIN: StaticCell<Executor> = StaticCell::new();
-
+static LED_PIN: GlobalPin = GlobalPin::new();
 //====================================================================================
 //====================================================================================
 #[embassy_executor::task]
 async fn display_task(spawner: Spawner) {
+
+    let led_pin = LED_PIN.get();
 
     let button = zephyr::devicetree::labels::button::get_instance().unwrap();
 
@@ -47,16 +48,15 @@ async fn display_task(spawner: Spawner) {
             button,
             || {
                 zephyr::printk!("Button Pressed!\n");
+                led_pin.toggle();
             },
-            Duration::from_millis(100)
+            Duration::from_millis(10)
         )]
     );
 
-    let _ = Timer::after(Duration::from_millis(2000)).await;
-
     loop {
-
-        let _ = Timer::after(Duration::from_millis(100)).await;
+        let _ = Timer::after(Duration::from_millis(1000)).await;
+        led_pin.toggle();
     }
 }
 //====================================================================================
@@ -66,6 +66,10 @@ extern "C" fn rust_main() {
     let _ = usage::set_logger();
 
     log::info!("Restart!!!\r\n");
+
+    LED_PIN.init(Pin::new(
+        zephyr::devicetree::labels::my_led::get_instance().expect("my_led not found!"),
+    ));    
 
     let executor = EXECUTOR_MAIN.init(Executor::new());
     executor.run(|spawner| {
