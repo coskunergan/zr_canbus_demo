@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Zephyr STM32N6 Debug",
+            "type": "cortex-debug",
+            "request": "launch",
+            "servertype": "openocd",
+            "cwd": "${workspaceFolder}",
+            "executable": "${workspaceFolder}/build/zephyr/zephyr.elf",
+            "device": "STM32N657X0H",
+            "interface": "swd",
+            "configFiles": [
+                "interface/stlink.cfg",
+                "target/stm32f2x.cfg"
+				//"target/stm32l1x_dual_bank.cfg"
+            ],
+            "searchDir": [
+                "/usr/share/openocd/scripts"
+            ],
+            "svdFile": "${workspaceFolder}/armcm55.svd",
+            "runToEntryPoint": "main",
+            "preLaunchTask": "build",
+            "openOCDLaunchCommands": [
+                "init",
+                "reset init"
+            ]
+        }
+    ]
+}

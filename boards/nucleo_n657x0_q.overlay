@@ -1,0 +1,15 @@
+#include "nucleo_n657x0_q.dtsi"
+
+/ {
+	gpios {		
+		compatible = "gpio-leds";	
+		my_led: my_led {			
+			gpios = <&gpioe 0 GPIO_ACTIVE_LOW>;	
+			label = "buzzer lcd_bl";
+		};
+		button: button {
+			gpios = <&gpioc 13 (GPIO_PULL_DOWN | GPIO_ACTIVE_LOW)>;
+			label = "Button";
+		};											
+	};				
+};

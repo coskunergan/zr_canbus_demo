@@ -1,2 +1,3 @@
-# zr_canbus_demo
-Zephyr + Rust STM32N657 Canbus demo.
+# zr_canbus demo
+
+Zephyr + Rust lang stm32n657 canbus demostration.
