@@ -27,18 +27,19 @@ use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 
 use pin::{GlobalPin, Pin};
 
-mod pin;
 mod button;
+mod pin;
 mod usage;
 
 static EXECUTOR_MAIN: StaticCell<Executor> = StaticCell::new();
-static LED_PIN: GlobalPin = GlobalPin::new();
+static RED_LED_PIN: GlobalPin = GlobalPin::new();
+static GREEN_LED_PIN: GlobalPin = GlobalPin::new();
 //====================================================================================
 //====================================================================================
 #[embassy_executor::task]
 async fn display_task(spawner: Spawner) {
-
-    let led_pin = LED_PIN.get();
+    let red_led_pin = RED_LED_PIN.get();
+    let green_led_pin = GREEN_LED_PIN.get();
 
     let button = zephyr::devicetree::labels::button::get_instance().unwrap();
 
@@ -48,7 +49,7 @@ async fn display_task(spawner: Spawner) {
             button,
             || {
                 zephyr::printk!("Button Pressed!\n");
-                led_pin.toggle();
+                red_led_pin.toggle();
             },
             Duration::from_millis(10)
         )]
@@ -56,20 +57,24 @@ async fn display_task(spawner: Spawner) {
 
     loop {
         let _ = Timer::after(Duration::from_millis(1000)).await;
-        led_pin.toggle();
+        red_led_pin.toggle();
+        green_led_pin.toggle();
+        log::info!("Coskun Ergan!!!\r\n");
     }
 }
 //====================================================================================
 #[no_mangle]
 extern "C" fn rust_main() {
-
     let _ = usage::set_logger();
 
     log::info!("Restart!!!\r\n");
 
-    LED_PIN.init(Pin::new(
-        zephyr::devicetree::labels::my_led::get_instance().expect("my_led not found!"),
-    ));    
+    RED_LED_PIN.init(Pin::new(
+        zephyr::devicetree::labels::my_red_led::get_instance().expect("my_red_led not found!"),
+    ));
+    GREEN_LED_PIN.init(Pin::new(
+        zephyr::devicetree::labels::my_green_led::get_instance().expect("my_green_led not found!"),
+    ));
 
     let executor = EXECUTOR_MAIN.init(Executor::new());
     executor.run(|spawner| {

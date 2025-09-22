@@ -3,10 +3,14 @@
 / {
 	gpios {		
 		compatible = "gpio-leds";	
-		my_led: my_led {			
+		my_red_led: my_red_led {			
 			gpios = <&gpiog 10 GPIO_ACTIVE_LOW>;	
 			label = "RED LED LED2";
 		};
+		my_green_led: my_green_led {			
+			gpios = <&gpiog 0 GPIO_ACTIVE_LOW>;	
+			label = "GREEN LED LD6";
+		};		
 		button: button {
 			gpios = <&gpioc 13 (GPIO_PULL_DOWN | GPIO_ACTIVE_LOW)>;
 			label = "Button";
