@@ -12,5 +12,10 @@
  "app": {
    "name": "${config:workspaceFolder.AppUnderDev}",
    "build_dir": "${workspaceFolder}/build",
+   },
+   "files.associations": {
+      "cstdint": "c",
+      "compare": "c",
+      "cstdlib": "c"
    }
 }

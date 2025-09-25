@@ -26,10 +26,12 @@ use core::{sync::atomic::AtomicBool, sync::atomic::AtomicI32, sync::atomic::Orde
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 
 use pin::{GlobalPin, Pin};
+use modbus_slave::Modbus_Slave;
 
 mod button;
 mod pin;
 mod usage;
+mod modbus_slave;
 
 static EXECUTOR_MAIN: StaticCell<Executor> = StaticCell::new();
 static RED_LED_PIN: GlobalPin = GlobalPin::new();
@@ -68,6 +70,8 @@ extern "C" fn rust_main() {
     let _ = usage::set_logger();
 
     log::info!("Restart!!!\r\n");
+
+    let modbus = Modbus_Slave::new(9600);
 
     RED_LED_PIN.init(Pin::new(
         zephyr::devicetree::labels::my_red_led::get_instance().expect("my_red_led not found!"),
