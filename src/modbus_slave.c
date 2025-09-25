@@ -88,10 +88,10 @@ int mb_slave_init(const char *dev)
     const int client_iface = modbus_iface_get_by_name(dev);
     if(modbus_init_server(client_iface, client_param))
     {
-        LOG_ERR("Modbus Server initialization failed");
+        LOG_ERR("Modbus Server initialization failed! client_iface: %d", client_iface);
         return -1;
     }
-    LOG_INF("Modbus Server initialization ok.");
+    LOG_INF("Modbus Server initialization ok. client_iface: %d", client_iface);
     return 0;
 }
 

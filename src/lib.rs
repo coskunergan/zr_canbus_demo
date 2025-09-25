@@ -80,10 +80,15 @@ extern "C" fn rust_main() {
     let mut local_reg = 0x456;
 
     let modbus = Modbus_Slave::new("modbus0\0");
+    let modbus_vcp = Modbus_Slave::new("modbus1\0");
 
     modbus.mb_add_holding_reg(COUNTER.as_ptr(), 0);
     modbus.mb_add_holding_reg(REGISTER.as_ptr(), 1);
     modbus.mb_add_holding_reg(&mut local_reg, 2);
+
+    modbus_vcp.mb_add_holding_reg(COUNTER.as_ptr(), 0);
+    modbus_vcp.mb_add_holding_reg(REGISTER.as_ptr(), 1);
+    modbus_vcp.mb_add_holding_reg(&mut local_reg, 2);
 
     RED_LED_PIN.init(Pin::new(
         zephyr::devicetree::labels::my_red_led::get_instance().expect("my_red_led not found!"),
