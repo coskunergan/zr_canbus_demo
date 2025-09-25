@@ -22,20 +22,24 @@ use static_cell::StaticCell;
 
 use zephyr::{device::gpio::GpioPin, sync::Mutex};
 
-use core::{sync::atomic::AtomicBool, sync::atomic::AtomicI32, sync::atomic::Ordering};
+use core::{sync::atomic::AtomicBool, sync::atomic::AtomicU16, sync::atomic::Ordering};
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 
-use pin::{GlobalPin, Pin};
 use modbus_slave::Modbus_Slave;
+use pin::{GlobalPin, Pin};
 
 mod button;
+mod modbus_slave;
 mod pin;
 mod usage;
-mod modbus_slave;
 
 static EXECUTOR_MAIN: StaticCell<Executor> = StaticCell::new();
 static RED_LED_PIN: GlobalPin = GlobalPin::new();
 static GREEN_LED_PIN: GlobalPin = GlobalPin::new();
+
+static COUNTER: AtomicU16 = AtomicU16::new(0);
+static REGISTER: AtomicU16 = AtomicU16::new(0);
+
 //====================================================================================
 //====================================================================================
 #[embassy_executor::task]
@@ -51,6 +55,7 @@ async fn display_task(spawner: Spawner) {
             button,
             || {
                 zephyr::printk!("Button Pressed!\n");
+                REGISTER.fetch_add(1, Ordering::SeqCst);
                 red_led_pin.toggle();
             },
             Duration::from_millis(10)
@@ -61,7 +66,8 @@ async fn display_task(spawner: Spawner) {
         let _ = Timer::after(Duration::from_millis(1000)).await;
         red_led_pin.toggle();
         green_led_pin.toggle();
-        log::info!("Coskun Ergan!!!\r\n");
+        log::info!("Endless Loop!!!\r\n");
+        COUNTER.fetch_add(1, Ordering::SeqCst);
     }
 }
 //====================================================================================
@@ -71,7 +77,13 @@ extern "C" fn rust_main() {
 
     log::info!("Restart!!!\r\n");
 
-    let modbus = Modbus_Slave::new(9600);
+    let mut local_reg = 0x456;
+
+    let modbus = Modbus_Slave::new("modbus0\0");
+
+    modbus.mb_add_holding_reg(COUNTER.as_ptr(), 0);
+    modbus.mb_add_holding_reg(REGISTER.as_ptr(), 1);
+    modbus.mb_add_holding_reg(&mut local_reg, 2);
 
     RED_LED_PIN.init(Pin::new(
         zephyr::devicetree::labels::my_red_led::get_instance().expect("my_red_led not found!"),
