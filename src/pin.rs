@@ -28,10 +28,8 @@ impl GlobalPin {
 
         let pin_ptr = Box::into_raw(Box::new(pin));
 
-        unsafe {
-            self.instance.store(pin_ptr, Ordering::Release);
-            self.is_initialized.store(true, Ordering::Release);
-        }
+        self.instance.store(pin_ptr, Ordering::Release);
+        self.is_initialized.store(true, Ordering::Release);
     }
 
     #[inline(always)]

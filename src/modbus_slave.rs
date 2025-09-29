@@ -7,17 +7,17 @@ extern "C" {
     fn mb_add_holding_reg(reg: *mut u16, addr: u16) -> i32;
 }
 
-pub struct Modbus_Slave {
+pub struct ModbusSlave {
     _private: (),
 }
 
-impl Modbus_Slave {
+impl ModbusSlave {
     pub fn new(dev: &str) -> Self {
         let ret = unsafe { mb_slave_init(dev.as_ptr()) };
         if ret != 0 {
             panic!("Failed to initialize Modbus Slave: error {}", ret);
         }
-        Modbus_Slave { _private: () }
+        ModbusSlave { _private: () }
     }
 
     pub fn mb_add_holding_reg(&self, reg: *mut u16, addr: u16) {

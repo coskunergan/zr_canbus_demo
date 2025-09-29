@@ -31,51 +31,48 @@ const struct device *can_dev;
 struct isotp_recv_ctx recv_ctx_8_0;
 struct isotp_send_ctx send_ctx_8_0;
 
-// K_THREAD_STACK_DEFINE(rx_8_0_thread_stack, CONFIG_SAMPLE_RX_THREAD_STACK_SIZE);
-// struct k_thread rx_8_0_thread_data;
+K_THREAD_STACK_DEFINE(rx_8_0_thread_stack, CONFIG_SAMPLE_RX_THREAD_STACK_SIZE);
+struct k_thread rx_8_0_thread_data;
 
-// void rx_8_0_thread(void *arg1, void *arg2, void *arg3)
-// {
-//     ARG_UNUSED(arg1);
-//     ARG_UNUSED(arg2);
-//     ARG_UNUSED(arg3);
-//     int ret, rem_len, received_len;
-//     struct net_buf *buf;
+extern void canbus_data_handler(const uint8_t *data, uint32_t len);
 
-//     ret = isotp_bind(&recv_ctx_8_0, can_dev,
-//                      &tx_addr_8_0, &rx_addr_8_0,
-//                      &fc_opts_8_0, K_FOREVER);
-//     if(ret != ISOTP_N_OK)
-//     {
-//         LOG_ERR("Failed to bind to rx ID %d [%d]\n",
-//                rx_addr_8_0.std_id, ret);
-//         return;
-//     }
+void rx_8_0_thread(void *arg1, void *arg2, void *arg3)
+{
+    ARG_UNUSED(arg1);
+    ARG_UNUSED(arg2);
+    ARG_UNUSED(arg3);
+    int ret, rem_len;
+    struct net_buf *buf;
 
-//     while(1)
-//     {
-//         received_len = 0;
-//         do
-//         {
-//             rem_len = isotp_recv_net(&recv_ctx_8_0, &buf,
-//                                      K_MSEC(2000));
-//             if(rem_len < 0)
-//             {
-//                 LOG_ERR("Receiving error [%d]\n", rem_len);
-//                 break;
-//             }
+    ret = isotp_bind(&recv_ctx_8_0, can_dev,
+                     &tx_addr_8_0, &rx_addr_8_0,
+                     &fc_opts_8_0, K_FOREVER);
+    if(ret != ISOTP_N_OK)
+    {
+        LOG_ERR("Failed to bind to rx ID %d [%d]\n",
+               rx_addr_8_0.std_id, ret);
+        return;
+    }
 
-//             while(buf != NULL)
-//             {
-//                 received_len += buf->len;
-//                 LOG_INF("%.*s", buf->len, buf->data);
-//                 buf = net_buf_frag_del(NULL, buf);
-//             }
-//         }
-//         while(rem_len);
-//         LOG_INF("Got %d bytes in total\n", received_len);
-//     }
-// }
+    while(1)
+    {
+        do
+        {
+            rem_len = isotp_recv_net(&recv_ctx_8_0, &buf,
+                                     K_MSEC(2000));
+            if(rem_len < 0)
+            {
+                break;
+            }
+            while(buf != NULL)
+            {
+                canbus_data_handler(buf->data, buf->len);
+                buf = net_buf_frag_del(NULL, buf);
+            }
+        }
+        while(rem_len);
+    }
+}
 
 void send_complette_cb(int error_nr, void *arg)
 {
@@ -83,15 +80,14 @@ void send_complette_cb(int error_nr, void *arg)
     LOG_INF("TX complete cb [%d]\n", error_nr);
 }
 
-
 int canbus_init(const char *dev_name)
 {
     k_tid_t tid;
     
     int ret = 0;
 
-    can_dev = device_get_binding(dev_name); // calısmadı!
-    //can_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_canbus)); // calıştı
+    can_dev = device_get_binding(dev_name);
+
     if(!device_is_ready(can_dev))
     {
         LOG_ERR("CAN: Device driver not ready.\n");
@@ -130,15 +126,15 @@ int canbus_init(const char *dev_name)
         return ret;
     }
 
-    // tid = k_thread_create(&rx_8_0_thread_data, rx_8_0_thread_stack,
-    // 		      K_THREAD_STACK_SIZEOF(rx_8_0_thread_stack),
-    // 		      rx_8_0_thread, NULL, NULL, NULL,
-    // 		      CONFIG_SAMPLE_RX_THREAD_PRIORITY, 0, K_NO_WAIT);
-    // if (!tid) {
-    // 	LOG_ERR("ERROR spawning rx thread\n");
-    // 	return 0;
-    // }
-    // k_thread_name_set(tid, "rx_8_0");
+    tid = k_thread_create(&rx_8_0_thread_data, rx_8_0_thread_stack,
+    		      K_THREAD_STACK_SIZEOF(rx_8_0_thread_stack),
+    		      rx_8_0_thread, NULL, NULL, NULL,
+    		      CONFIG_SAMPLE_RX_THREAD_PRIORITY, 0, K_NO_WAIT);
+    if (!tid) {
+    	LOG_ERR("ERROR spawning rx thread\n");
+    	return 0;
+    }
+    k_thread_name_set(tid, "rx_8_0");
 
     return ret;
 }
@@ -150,7 +146,7 @@ int canbus_isotp_send(const uint8_t *data, const uint16_t len)
                          &tx_addr_8_0, &rx_addr_8_0, send_complette_cb, NULL);
     if(ret != ISOTP_N_OK)
     {
-        LOG_ERR("Error while sending data to ID %d [%d]\n",
+        LOG_WRN("Error while sending data to ID %d [%d]\n",
                tx_addr_8_0.std_id, ret);
     }
     return ret;
