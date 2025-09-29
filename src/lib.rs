@@ -62,7 +62,7 @@ async fn led_task(spawner: Spawner) {
     );
 
     loop {
-        let _ = Timer::after(Duration::from_millis(100)).await;
+        let _ = Timer::after(Duration::from_millis(500)).await;
         red_led_pin.toggle();
         green_led_pin.toggle();
         log::info!("Endless Loop!");
