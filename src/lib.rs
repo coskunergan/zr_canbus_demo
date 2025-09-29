@@ -6,7 +6,6 @@
 
 extern crate alloc;
 
-use alloc::format;
 use embassy_time::{Duration, Timer};
 
 #[cfg(feature = "executor-thread")]
@@ -25,10 +24,12 @@ use zephyr::{device::gpio::GpioPin, sync::Mutex};
 use core::{sync::atomic::AtomicBool, sync::atomic::AtomicU16, sync::atomic::Ordering};
 use embassy_sync::blocking_mutex::raw::CriticalSectionRawMutex;
 
+use canbus::CanBus;
 use modbus_slave::Modbus_Slave;
 use pin::{GlobalPin, Pin};
 
 mod button;
+mod canbus;
 mod modbus_slave;
 mod pin;
 mod usage;
@@ -71,6 +72,15 @@ async fn display_task(spawner: Spawner) {
     }
 }
 //====================================================================================
+#[embassy_executor::task]
+async fn canbus_task(can: CanBus) {
+
+    loop {
+        can.canbus_isotp_send("merhaba dunyaaaaaaaaaa!".as_bytes());
+        Timer::after(Duration::from_secs(1)).await;
+    }
+}
+//====================================================================================
 #[no_mangle]
 extern "C" fn rust_main() {
     let _ = usage::set_logger();
@@ -79,6 +89,7 @@ extern "C" fn rust_main() {
 
     let mut local_reg = 0x456;
 
+    let can_fd = CanBus::new("canbus0\0");
     let modbus = Modbus_Slave::new("modbus0\0");
     let modbus_vcp = Modbus_Slave::new("modbus1\0");
 
@@ -100,6 +111,7 @@ extern "C" fn rust_main() {
     let executor = EXECUTOR_MAIN.init(Executor::new());
     executor.run(|spawner| {
         spawner.spawn(display_task(spawner)).unwrap();
+        spawner.spawn(canbus_task(can_fd)).unwrap();
     })
 }
 //====================================================================================

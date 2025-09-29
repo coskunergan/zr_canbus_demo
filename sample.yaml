@@ -15,6 +15,9 @@ tests:
     tags:
     filter: 
     depends_on:
+    extra_configs:
+      - CONFIG_SAMPLE_LOOPBACK_MODE=y
+      - CONFIG_SAMPLE_CAN_FD_MODE=y    
     harness:
     integration_platforms:
       - stm32f4_disco

@@ -66,6 +66,7 @@ impl Pin {
     }
 
     #[inline(always)]
+    #[allow(dead_code)]
     pub fn set(&self, value: bool) {
         unsafe {
             (*self.gpio.get()).set(value);
@@ -73,6 +74,7 @@ impl Pin {
     }
 
     #[inline(always)]
+    #[allow(dead_code)]
     pub fn toggle(&self) {
         unsafe {
             (*self.gpio.get()).toggle_pin();

@@ -95,7 +95,7 @@ int mb_slave_init(const char *dev)
     return 0;
 }
 
-int mb_add_holding_reg(uint16_t * reg, uint16_t addr)
+int mb_add_holding_reg(uint16_t * reg, const uint16_t addr)
 {
     if(addr >= NUMBER_OF_MB_ITEM)
     {

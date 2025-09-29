@@ -28,7 +28,7 @@
 	modbus0 {
 		compatible = "zephyr,modbus-serial";
 		status = "okay";
-		de-gpios = <&gpiod 0 GPIO_ACTIVE_LOW>;	
+		de-gpios = <&gpioe 0 GPIO_ACTIVE_LOW>;	
 	};		
 };
 
@@ -44,6 +44,10 @@
 		status = "okay";
 		de-gpios = <&gpioe 9 GPIO_ACTIVE_LOW>;	
 	};		
+};
+
+&fdcan1 {
+    label = "canbus0"; 
 };
 
 
