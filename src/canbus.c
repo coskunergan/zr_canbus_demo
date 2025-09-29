@@ -50,7 +50,7 @@ void rx_8_0_thread(void *arg1, void *arg2, void *arg3)
     if(ret != ISOTP_N_OK)
     {
         LOG_ERR("Failed to bind to rx ID %d [%d]\n",
-               rx_addr_8_0.std_id, ret);
+                rx_addr_8_0.std_id, ret);
         return;
     }
 
@@ -77,13 +77,16 @@ void rx_8_0_thread(void *arg1, void *arg2, void *arg3)
 void send_complette_cb(int error_nr, void *arg)
 {
     ARG_UNUSED(arg);
-    LOG_INF("TX complete cb [%d]\n", error_nr);
+    if(error_nr < 0)
+    {
+        LOG_ERR("TX complete cb [%d]\n", error_nr);
+    }
 }
 
 int canbus_init(const char *dev_name)
 {
     k_tid_t tid;
-    
+
     int ret = 0;
 
     can_dev = device_get_binding(dev_name);
@@ -127,12 +130,13 @@ int canbus_init(const char *dev_name)
     }
 
     tid = k_thread_create(&rx_8_0_thread_data, rx_8_0_thread_stack,
-    		      K_THREAD_STACK_SIZEOF(rx_8_0_thread_stack),
-    		      rx_8_0_thread, NULL, NULL, NULL,
-    		      CONFIG_SAMPLE_RX_THREAD_PRIORITY, 0, K_NO_WAIT);
-    if (!tid) {
-    	LOG_ERR("ERROR spawning rx thread\n");
-    	return 0;
+                          K_THREAD_STACK_SIZEOF(rx_8_0_thread_stack),
+                          rx_8_0_thread, NULL, NULL, NULL,
+                          CONFIG_SAMPLE_RX_THREAD_PRIORITY, 0, K_NO_WAIT);
+    if(!tid)
+    {
+        LOG_ERR("ERROR spawning rx thread\n");
+        return 0;
     }
     k_thread_name_set(tid, "rx_8_0");
 
@@ -147,7 +151,7 @@ int canbus_isotp_send(const uint8_t *data, const uint16_t len)
     if(ret != ISOTP_N_OK)
     {
         LOG_WRN("Error while sending data to ID %d [%d]\n",
-               tx_addr_8_0.std_id, ret);
+                tx_addr_8_0.std_id, ret);
     }
     return ret;
 }

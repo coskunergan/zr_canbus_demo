@@ -5,6 +5,7 @@
 #![no_std]
 
 extern crate alloc;
+use alloc::format;
 
 use embassy_time::{Duration, Timer};
 
@@ -17,7 +18,7 @@ use zephyr::embassy::Executor;
 use embassy_executor::Spawner;
 use static_cell::StaticCell;
 
-use zephyr::{device::gpio::GpioPin};
+use zephyr::device::gpio::GpioPin;
 
 use core::{sync::atomic::AtomicU16, sync::atomic::Ordering};
 
@@ -41,7 +42,7 @@ static REGISTER: AtomicU16 = AtomicU16::new(0);
 //====================================================================================
 //====================================================================================
 #[embassy_executor::task]
-async fn test_task(spawner: Spawner) {
+async fn led_task(spawner: Spawner) {
     let red_led_pin = RED_LED_PIN.get();
     let green_led_pin = GREEN_LED_PIN.get();
 
@@ -61,10 +62,10 @@ async fn test_task(spawner: Spawner) {
     );
 
     loop {
-        let _ = Timer::after(Duration::from_millis(1000)).await;
+        let _ = Timer::after(Duration::from_millis(100)).await;
         red_led_pin.toggle();
         green_led_pin.toggle();
-        log::info!("Endless Loop!!!\r\n");
+        log::info!("Endless Loop!");
         COUNTER.fetch_add(1, Ordering::SeqCst);
     }
 }
@@ -72,8 +73,13 @@ async fn test_task(spawner: Spawner) {
 #[embassy_executor::task]
 async fn canbus_task(can: CanBus) {
     loop {
-        can.canbus_isotp_send("merhaba dunya!".as_bytes());
-        Timer::after(Duration::from_secs(1)).await;
+        let message = format!(
+            "BUTTON PRESS:{} COUNTER: {} ",
+            REGISTER.load(Ordering::SeqCst),
+            COUNTER.load(Ordering::SeqCst)
+        );
+        let _ = can.canbus_isotp_send(message.as_bytes());
+        Timer::after(Duration::from_millis(100)).await;
     }
 }
 //====================================================================================
@@ -120,7 +126,7 @@ extern "C" fn rust_main() {
 
     let executor = EXECUTOR_MAIN.init(Executor::new());
     executor.run(|spawner| {
-        spawner.spawn(test_task(spawner)).unwrap();
+        spawner.spawn(led_task(spawner)).unwrap();
         spawner.spawn(canbus_task(can_fd)).unwrap();
     })
 }
