@@ -1,0 +1,48 @@
+
+/ {
+	gpios {		
+		compatible = "gpio-leds";	
+		my_red_led: my_red_led {			
+			gpios = <&gpioc 2 GPIO_ACTIVE_LOW>;	
+			label = "RED LED LED2";
+		};
+		my_green_led: my_green_led {			
+			gpios = <&gpioc 3 GPIO_ACTIVE_LOW>;	
+			label = "GREEN LED LED1";
+		};		
+		button: button {
+			gpios = <&gpioc 13 (GPIO_PULL_DOWN | GPIO_ACTIVE_LOW)>;
+			label = "Button";
+		};											
+	};				
+};
+
+&usart1 {
+	pinctrl-0 = <&usart1_tx_pb14 &usart1_rx_pb15>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+	modbus0 {
+		compatible = "zephyr,modbus-serial";
+		status = "okay";
+		de-gpios = <&gpioe 9 GPIO_ACTIVE_LOW>;	
+	};		
+};
+
+&usart3 {
+	pinctrl-0 = <&usart3_tx_pd8 &usart3_rx_pd9>;
+	pinctrl-names = "default";
+	current-speed = <115200>;
+	status = "okay";
+	modbus1 {
+		compatible = "zephyr,modbus-serial";
+		status = "okay";
+		de-gpios = <&gpioe 0 GPIO_ACTIVE_LOW>;	
+	};		
+};
+
+&fdcan1 {
+    label = "canbus0"; 
+};
+
+
